@@ -19,12 +19,17 @@ class Server(object):
     def __init__(self, host, port, vhost, user, password):
         """Create a new Server
         """
-        self._conn = RabbitConnection(transport = 'gevent', host = host, port = port, vhost = vhost, user = user, password = password)
+        self._conn = RabbitConnection(transport = 'gevent', host = host, port = port, vhost = vhost, user = user, password = password, open_cb = self.onConnected)
         gevent.spawn(self.loop)
         self._channel = self._conn.channel()
         self._channel.basic.qos(prefetch_count = 10)
         self._channel.queue.declare('test_confirm', auto_delete = True)
         self._channel.basic.consume('test_confirm', self.callback, no_ack = False)
+
+    def onConnected(self):
+        """On connected
+        """
+        print 'Connected'
 
     def loop(self):
         """Waiting for response
